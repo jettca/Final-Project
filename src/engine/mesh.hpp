@@ -1,3 +1,6 @@
+#ifndef __MESH_HPP__
+#define __MESH_HPP__
+
 #include <vector>
 #include <string>
 
@@ -29,3 +32,5 @@ namespace engine
             void loadMTL(std::string mtlpath);
     };
 }
+
+#endif  // ifndef __MESH_HPP__

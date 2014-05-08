@@ -1,15 +1,16 @@
 CXX = g++ -O0
 
 INCLUDES = -iquote src
-CXXFLAGS = -g -Wall $(INCLUDES)
+CXXFLAGS = -g -Wno-deprecated $(INCLUDES)
 
-LDFLAGS = -g
+LDFLAGS = -framework OpenGL -framework GLUT -lGLEW -DGLEW_STATIC
 LDLIBS = 
 
-executable = bin/main
+bin = bin
+executable = $(bin)/main
 srcd = src
 objd = obj
-objects = scene.o input.o mesh.o
+objects = main.o scene.o input.o mesh.o loadshaders.o
 objects := $(addprefix $(objd)/, $(objects))
 
 GL = includes/gl_include.h
@@ -18,18 +19,26 @@ GL = includes/gl_include.h
 default: $(executable)
 
 $(executable): $(objects)
-	$(CXX) $(INCLUDES) $(LDLIBS) $(LDFLAGS) $(objects) -o $(executable)
+	mkdir -p $(bin)
+	mkdir -p $(objd)
+	$(CXX) $(objects) -o $(executable) $(LDLIBS) $(LDFLAGS) 
 
 # Include dependencies
 
-$(objd)/scene.o: $(srcd)/engine/mesh.hpp
-	$(CXX) -c $(INCLUDES) $(srcd)/engine/scene.cpp -o $(objd)/scene.o
+$(objd)/main.o: $(srcd)/main.cpp $(srcd)/input/input.hpp $(srcd)/engine/scene.cpp
+	$(CXX) $(CXXFLAGS) -c $(srcd)/main.cpp -o $(objd)/main.o
 
-$(objd)/input.o: $(srcd)/engine/scene.hpp
-	$(CXX) -c $(INCLUDES) $(srcd)/input/input.cpp -o $(objd)/input.o
+$(objd)/scene.o: $(srcd)/engine/scene.cpp $(srcd)/engine/mesh.hpp
+	$(CXX) $(CXXFLAGS) -c $(srcd)/engine/scene.cpp -o $(objd)/scene.o
 
-$(objd)/mesh.o:
-	$(CXX) -c $(INCLUDES) $(srcd)/engine/mesh.cpp -o $(objd)/mesh.o
+$(objd)/input.o: $(srcd)/input/input.cpp $(srcd)/engine/scene.hpp
+	$(CXX) $(CXXFLAGS) -c $(srcd)/input/input.cpp -o $(objd)/input.o
+
+$(objd)/mesh.o: $(srcd)/engine/mesh.cpp
+	$(CXX) $(CXXFLAGS) -c $(srcd)/engine/mesh.cpp -o $(objd)/mesh.o
+
+$(objd)/loadshaders.o: $(srcd)/engine/shaders/loadshaders.cpp
+	$(CXX) $(CXXFLAGS) -c $(srcd)/engine/shaders/loadshaders.cpp -o $(objd)/loadshaders.o
 
 .PHONY: clean
 clean:

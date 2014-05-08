@@ -1,3 +1,6 @@
+#ifndef __INPUT_HPP__
+#define __INPUT_HPP__
+
 #include "engine/scene.hpp"
 
 namespace input
@@ -8,3 +11,5 @@ namespace input
     void specialDown(int key, int x, int y, engine::scene &s);
     void specialUp(int key, int x, int y, engine::scene &s);
 }
+
+#endif  // ifndef __INPUT_HPP__

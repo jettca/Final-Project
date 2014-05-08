@@ -1,6 +1,7 @@
 #include "engine/mesh.hpp"
 
 #include <sstream>
+#include <fstream>
 
 using namespace engine;
 
@@ -98,10 +99,10 @@ void mesh::draw()
 
 void mesh::translate(glm::vec3 delta)
 {
-    modelMatrix *= glm::translate(delta)
+    modelMatrix = glm::translate(modelMatrix, delta);
 }
 
 void mesh::rotate(float angle, glm::vec3 axis)
 {
-    modelMatrix *= glm::rotate(angle, axis);
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(angle), axis);
 }

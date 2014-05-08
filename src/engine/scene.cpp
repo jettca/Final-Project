@@ -35,8 +35,7 @@ void scene::draw()
 }
 
 void scene::update()
-{
-}
+{}
 
 void scene::setKey(int key)
 {

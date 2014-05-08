@@ -1,3 +1,6 @@
+#ifndef __SCENE_HPP__
+#define __SCENE_HPP__
+
 #include <vector>
 #include <string>
 #include <set>
@@ -30,3 +33,5 @@ namespace engine
             std::set<int> specialsDown;
     };
 }
+
+#endif  // ifndef __SCENE_HPP__
