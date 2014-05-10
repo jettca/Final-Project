@@ -21,24 +21,28 @@ void initGL()
     glBindVertexArray(vertexArrayID);
 }
 
-void initWorld()
+void initWorld(int window_width, int window_height)
 {
     std::vector<std::string> filepaths;
     filepaths.push_back("static/test_mesh.obj");
 
     std::vector<glm::mat4> modelMatrices;
-    modelMatrices.push_back(glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, -15.0f)));
+    glm::mat4 init;
+    init = glm::translate(init, glm::vec3(0.0f, 0.0f, -15.0f));
+    init = glm::rotate(init, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    modelMatrices.push_back(init);
 
     std::vector<engine::light> lights;
     lights.push_back(engine::light(glm::vec3(0, 5, 5),
                 glm::vec3(1, 1, 1), glm::vec3(1, 1, 1)));
 
-    glm::mat4 projection(glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f));
+    glm::mat4 projection(glm::perspective(45.0f, float(window_width)/window_height,
+                0.1f, 100.0f));
     glm::mat4 camRotation;
     glm::vec3 camPosition(0, 0, 0);
 
     world = engine::scene(filepaths, modelMatrices, lights, projection,
-            camRotation, camPosition);
+            camRotation, camPosition, window_width, window_height);
 }
 
 void display()
@@ -84,19 +88,19 @@ void idle()
 
 int main(int argc, char **argv)
 {
-    int win_width = 1024;
-    int win_height = 512;
+    int window_width = 1024;
+    int window_height = 512;
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_3_2_CORE_PROFILE);
-    glutInitWindowSize(win_width, win_height);
+    glutInitWindowSize(window_width, window_height);
     glutCreateWindow("Project");
 
     glewExperimental = GL_TRUE;
     glewInit();
 
     initGL();
-    initWorld();
+    initWorld(window_width, window_height);
 
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
@@ -104,7 +108,7 @@ int main(int argc, char **argv)
     glutKeyboardUpFunc(keyboardUp);
     glutSpecialFunc(special);
     glutSpecialUpFunc(specialUp);
-    glutIdleFunc(idle);
+    // glutIdleFunc(idle);
 
     glutMainLoop();
 

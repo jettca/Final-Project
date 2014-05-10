@@ -20,7 +20,8 @@ namespace engine
                     std::vector<light> lights,
                     glm::mat4 projectionMatrix,
                     glm::mat4 camRotation,
-                    glm::vec3 camPosition);
+                    glm::vec3 camPosition,
+                    int window_width, int window_height);
 
             void draw();
             void update();
@@ -29,6 +30,8 @@ namespace engine
             void setSpecial(int key);
             void unsetKey(int key);
             void unsetSpecial(int key);
+
+            int window_width, window_height;
 
         private:
             std::vector<mesh> meshes;
