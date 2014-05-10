@@ -4,7 +4,8 @@
 #include <fstream>
 #include <sstream>
 
-GLuint engine::loadshaders(std::string vertfile, std::string fragfile)
+GLuint engine::loadshaders(std::string vertfile, std::string fragfile,
+        std::vector<std::string> attributes)
 {
     /* init glew and load compiled shaders */
     glewInit();
@@ -80,10 +81,15 @@ GLuint engine::loadshaders(std::string vertfile, std::string fragfile)
         exit(1);
     }
 
-    /* create and link program */
+    /* create program, bind attributes, and link program */
     int program = glCreateProgram();
     glAttachShader(program, vertexShader);
     glAttachShader(program, fragmentShader);
+    int num_attributes = attributes.size();
+    for(int i = 0; i < num_attributes; i++)
+    {
+        glBindAttribLocation(program, i, attributes.at(i).c_str());
+    }
     glLinkProgram(program);
 
     GLint pstatus;

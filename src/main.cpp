@@ -1,66 +1,49 @@
 #include <iostream>
 
-#include "includes/gl_include.h"
 #include "input/input.hpp"
 #include "engine/scene.hpp"
 #include "engine/shaders/loadshaders.hpp"
 
 engine::scene world;
 GLuint vertexBuffer;
-GLuint programID;
 
 void initGL()
 {
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_LINE_SMOOTH);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-    programID = engine::loadshaders("src/engine/shaders/triangle.vert",
-            "src/engine/shaders/triangle.frag");
-
+    GLuint vertexArrayID;
+    glGenVertexArrays(1, &vertexArrayID);
+    glBindVertexArray(vertexArrayID);
 }
 
 void initWorld()
 {
-    GLuint vertexArrayID;
-    glGenVertexArrays(1, &vertexArrayID);
-    glBindVertexArray(vertexArrayID);
-    static const GLfloat g_vertex_buffer_data[] = {
-       -1.0f, -1.0f, 0.0f,
-       1.0f, -1.0f, 0.0f,
-       0.0f,  1.0f, 0.0f,
-    };
+    std::vector<std::string> filepaths;
+    filepaths.push_back("static/test_mesh.obj");
 
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data),
-            g_vertex_buffer_data, GL_STATIC_DRAW);
+    std::vector<glm::mat4> modelMatrices;
+    modelMatrices.push_back(glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, -15.0f)));
+
+    std::vector<engine::light> lights;
+    lights.push_back(engine::light(glm::vec3(0, 5, 5),
+                glm::vec3(1, 1, 1), glm::vec3(1, 1, 1)));
+
+    glm::mat4 projection(glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f));
+    glm::mat4 camRotation;
+    glm::vec3 camPosition(0, 0, 0);
+
+    world = engine::scene(filepaths, modelMatrices, lights, projection,
+            camRotation, camPosition);
 }
 
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(programID);
-
-    glEnableVertexAttribArray(0);
-
-    glBindAttribLocation(programID, 0, "vertexPosition_modelspace");
-
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glVertexAttribPointer(
-            0,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            0,
-            (void*)0
-    );
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    glDisableVertexAttribArray(0);
 
     world.draw();
 

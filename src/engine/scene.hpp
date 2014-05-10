@@ -6,6 +6,7 @@
 #include <set>
 
 #include "engine/mesh.hpp"
+#include "engine/light.hpp"
 #include "includes/glm_include.hpp"
 
 namespace engine
@@ -15,7 +16,11 @@ namespace engine
         public:
             scene();
             scene(std::vector<std::string> mesh_paths,
-                    std::vector<glm::vec3> mesh_positions);
+                    std::vector<glm::mat4> modelMatrices,
+                    std::vector<light> lights,
+                    glm::mat4 projectionMatrix,
+                    glm::mat4 camRotation,
+                    glm::vec3 camPosition);
 
             void draw();
             void update();
@@ -27,7 +32,12 @@ namespace engine
 
         private:
             std::vector<mesh> meshes;
-            glm::mat4 viewMatrix;
+            std::vector<light> lights;
+
+            glm::mat4 projectionMatrix;
+            glm::mat4 viewMatrix();
+            glm::vec4 invCamPosition;
+            glm::mat4 invCamRotation;
 
             std::set<int> keysDown;
             std::set<int> specialsDown;
