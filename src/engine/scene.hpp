@@ -44,6 +44,13 @@ namespace engine
 
             std::set<int> keysDown;
             std::set<int> specialsDown;
+
+            GLuint renderProgramID, canvasProgramID;
+            GLuint texFramebuffer, sceneTexture;
+            GLuint depthbuffer, canvasPosBuffer;
+
+            void initShaders();
+            void initTextureBuffers();
     };
 }
 

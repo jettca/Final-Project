@@ -47,12 +47,7 @@ void initWorld(int window_width, int window_height)
 
 void display()
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     world.draw();
-
-    glFlush();
-    glutSwapBuffers();
 }
 
 void reshape(int w, int h)
@@ -100,6 +95,7 @@ int main(int argc, char **argv)
     glewInit();
 
     initGL();
+
     initWorld(window_width, window_height);
 
     glutDisplayFunc(display);
@@ -108,7 +104,7 @@ int main(int argc, char **argv)
     glutKeyboardUpFunc(keyboardUp);
     glutSpecialFunc(special);
     glutSpecialUpFunc(specialUp);
-    // glutIdleFunc(idle);
+    glutIdleFunc(idle);
 
     glutMainLoop();
 

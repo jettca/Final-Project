@@ -25,7 +25,7 @@ $(executable): $(objects)
 
 # Include dependencies
 
-$(objd)/main.o: $(srcd)/main.cpp $(srcd)/input/input.hpp $(srcd)/engine/scene.cpp
+$(objd)/main.o: $(srcd)/main.cpp $(srcd)/input/input.hpp $(srcd)/engine/scene.hpp
 	$(CXX) $(CXXFLAGS) -c $(srcd)/main.cpp -o $(objd)/main.o
 
 $(objd)/scene.o: $(srcd)/engine/scene.cpp $(srcd)/engine/mesh.hpp \
