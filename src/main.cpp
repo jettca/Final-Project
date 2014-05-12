@@ -24,8 +24,12 @@ void initGL()
 void initWorld(int windowWidth, int windowHeight)
 {
     std::vector<engine::light> lights;
-    lights.push_back(engine::light(glm::vec3(0, 5, 5),
-                glm::vec3(1, 1, 1), glm::vec3(1, 1, 1)));
+    lights.push_back(engine::light(glm::vec3(0, 100, 5),
+                glm::vec3(1, 0, 1), glm::vec3(1, 0, 1)));
+    lights.push_back(engine::light(glm::vec3(0, -100, 5),
+                glm::vec3(1, 1, 0), glm::vec3(0, 1, 0)));
+    lights.push_back(engine::light(glm::vec3(0, 0, -100),
+                glm::vec3(0, 1, 1), glm::vec3(0, 1, 0)));
 
     glm::mat4 projection(glm::perspective(45.0f, float(windowWidth)/windowHeight,
                 0.1f, 100.0f));
@@ -97,7 +101,6 @@ int main(int argc, char **argv)
     glewInit();
 
     initGL();
-
     initWorld(windowWidth, windowHeight);
 
     glutDisplayFunc(display);

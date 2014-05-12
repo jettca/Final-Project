@@ -87,8 +87,8 @@ void mesh::initShaders()
     std::vector<std::string> out_attributes;
     out_attributes.push_back("color");
 
-    programID = engine::loadshaders("src/engine/shaders/triangle.vert",
-            "src/engine/shaders/triangle.frag", in_attributes, out_attributes);
+    programID = engine::loadshaders("src/engine/shaders/lambertian.vert",
+            "src/engine/shaders/lambertian.frag", in_attributes, out_attributes);
 
 }
 
@@ -123,7 +123,7 @@ void mesh::draw(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, light l)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     // Load light data
-    GLuint lightPosID = glGetUniformLocation(programID, "lightPosition_modelspace");
+    GLuint lightPosID = glGetUniformLocation(programID, "lightPosition_worldspace");
     GLuint lightDiffuseID = glGetUniformLocation(programID, "lightDiffuse");
     GLuint lightSpecularID = glGetUniformLocation(programID, "lightSpecular");
     glUniform3fv(lightPosID, 1, &l.position[0]);

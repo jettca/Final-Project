@@ -184,46 +184,50 @@ void scene::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Render meshes to texture
-    glBindFramebuffer(GL_FRAMEBUFFER, texFramebuffer);
-
-    static const GLuint clearColor[4] = {0, 0, 0, 0};
-    glClearBufferuiv(GL_COLOR, 0, clearColor);
-
-    static const GLfloat clearDepth[1] = {1.0f};
-    glClearBufferfv(GL_DEPTH, 0, clearDepth);
-
-    glViewport(0, 0, windowWidth, windowHeight);
-
     int num_meshes = meshes.size();
     int num_lights = lights.size();
+
     for(int l = 0; l < num_lights; l++)
     {
+
+        // Render meshes to texture
+        glBindFramebuffer(GL_FRAMEBUFFER, texFramebuffer);
+        glViewport(0, 0, windowWidth, windowHeight);
+        static const GLuint clearColor[4] = {0, 0, 0, 0};
+        static const GLfloat clearDepth[1] = {1.0f};
+        glClearBufferuiv(GL_COLOR, 0, clearColor);
+        glClearBufferfv(GL_DEPTH, 0, clearDepth);
+
         for(int m = 0; m < num_meshes; m++)
         {
             meshes.at(m).draw(viewMatrix(), projectionMatrix, lights.at(l));
         }
+
+        // Draw texture to screen
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, windowWidth, windowHeight);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE);
+
+        glUseProgram(canvasProgramID);
+        glEnableVertexAttribArray(0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, canvasPosBuffer);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+        GLuint textureLoc = glGetUniformLocation(canvasProgramID, "sceneTexture");
+        glUniform1i(textureLoc, 0);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, sceneTexture);
+
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        
+        glDisableVertexAttribArray(0);
+        glDisable(GL_BLEND);
     }
-
-    // Draw texture to screen
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glUseProgram(canvasProgramID);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, canvasPosBuffer);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-    GLuint textureLoc = glGetUniformLocation(canvasProgramID, "sceneTexture");
-    glUniform1i(textureLoc, 0);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sceneTexture);
-
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    
-    glDisableVertexAttribArray(0);
 
     glFlush();
     glutSwapBuffers();
