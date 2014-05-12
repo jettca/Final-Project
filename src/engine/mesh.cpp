@@ -1,4 +1,5 @@
 #include "engine/mesh.hpp"
+#include "engine/shaders/loadshaders.hpp"
 
 #include <sstream>
 #include <fstream>
@@ -8,7 +9,7 @@ using namespace engine;
 
 mesh::mesh() :
     vertices(),
-    texture_uvs(),
+    textureUVs(),
     normals(),
     diffuse(),
     ambient(),
@@ -18,19 +19,81 @@ mesh::mesh() :
     normalBuffer()
 {}
 
-mesh::mesh(std::string filepath, glm::mat4 modelMatrix, GLuint programID) :
+mesh::mesh(std::string filepath, glm::mat4 modelMatrix) :
     vertices(),
-    texture_uvs(),
+    textureUVs(),
     normals(),
     diffuse(),
     ambient(),
     modelMatrix(modelMatrix),
-    programID(programID),
+    programID(),
     vertexBuffer(),
     normalBuffer()
 {
     loadMesh(filepath);
+    
+    initShaders();
+    initBuffers();
+}
 
+mesh::mesh(const mesh& m) :
+    vertices(m.vertices),
+    textureUVs(m.textureUVs),
+    normals(m.normals),
+    diffuse(m.diffuse),
+    ambient(m.ambient),
+    modelMatrix(m.modelMatrix),
+    programID(),
+    vertexBuffer(),
+    normalBuffer()
+{
+    initShaders();
+    initBuffers();
+}
+
+mesh& mesh::operator=(const mesh& m)
+{
+    vertices = m.vertices;
+    textureUVs = textureUVs;
+    normals = m.normals;
+    diffuse = m.diffuse;
+    ambient = m.ambient;
+    modelMatrix = m.modelMatrix;
+
+    glDeleteProgram(programID);
+    glDeleteBuffers(1, &vertexBuffer);
+    glDeleteBuffers(1, &normalBuffer);
+
+    initShaders();
+    initBuffers();
+
+    return *this;
+}
+
+mesh::~mesh()
+{
+    glDeleteProgram(programID);
+    glDeleteBuffers(1, &vertexBuffer);
+    glDeleteBuffers(1, &normalBuffer);
+}
+
+void mesh::initShaders()
+{
+    // Rendering image with one light
+    std::vector<std::string> in_attributes;
+    in_attributes.push_back("vertexPosition_modelspace");
+    in_attributes.push_back("vertexNormal");
+
+    std::vector<std::string> out_attributes;
+    out_attributes.push_back("color");
+
+    programID = engine::loadshaders("src/engine/shaders/triangle.vert",
+            "src/engine/shaders/triangle.frag", in_attributes, out_attributes);
+
+}
+
+void mesh::initBuffers()
+{
     // Load position buffer
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -46,7 +109,6 @@ mesh::mesh(std::string filepath, glm::mat4 modelMatrix, GLuint programID) :
 
 void mesh::draw(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, light l)
 {
-
     glUseProgram(programID);
 
     glEnableVertexAttribArray(0);
@@ -102,7 +164,7 @@ void mesh::loadMesh(std::string filepath)
     // Temporary lists (to be organized)
     std::vector<glm::mat3> triangles;
     std::vector<glm::vec3> vertices_;
-    std::vector<glm::vec2> texture_uvs_;
+    std::vector<glm::vec2> textureUVs_;
     std::vector<glm::vec3> normals_;
 
     std::ostringstream mtlpath;
@@ -132,7 +194,7 @@ void mesh::loadMesh(std::string filepath)
         {
             float u, v;
             iss >> u >> v;
-            texture_uvs_.push_back(glm::vec2(u, v));
+            textureUVs_.push_back(glm::vec2(u, v));
         }
         else if(type == "vn")
         {
@@ -168,7 +230,7 @@ void mesh::loadMesh(std::string filepath)
         for(int v = 0; v < 3; v++)
         {
             vertices.push_back(vertices_.at(triangle[v][0]-1));
-            texture_uvs.push_back(texture_uvs_.at(triangle[v][1]-1));
+            textureUVs.push_back(textureUVs_.at(triangle[v][1]-1));
             normals.push_back(normals_.at(triangle[v][2]-1));
         }
     }

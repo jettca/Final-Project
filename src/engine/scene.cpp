@@ -12,8 +12,8 @@ scene::scene() :
     invCamPosition(glm::vec4(0, 0, 0, 0)),
     keysDown(),
     specialsDown(),
-    window_width(),
-    window_height(),
+    windowWidth(),
+    windowHeight(),
     texFramebuffer(),
     sceneTexture(),
     depthbuffer(),
@@ -22,22 +22,21 @@ scene::scene() :
     canvasProgramID()
 {}
 
-scene::scene(std::vector<std::string> mesh_paths,
-        std::vector<glm::mat4> modelMatrices,
+scene::scene(std::vector<mesh> meshes,
         std::vector<light> lights,
         glm::mat4 projectionMatrix,
         glm::mat4 camRotation,
         glm::vec3 camPosition,
-        int window_width, int window_height) :
-    meshes(),
+        int windowWidth, int windowHeight) :
+    meshes(meshes),
     lights(lights),
     projectionMatrix(projectionMatrix),
     invCamRotation(glm::inverse(camRotation)),
     invCamPosition(glm::vec4(-camPosition, 1)),
     keysDown(),
     specialsDown(),
-    window_width(window_width),
-    window_height(window_height),
+    windowWidth(windowWidth),
+    windowHeight(windowHeight),
     texFramebuffer(),
     sceneTexture(),
     depthbuffer(),
@@ -45,47 +44,81 @@ scene::scene(std::vector<std::string> mesh_paths,
     renderProgramID(),
     canvasProgramID()
 {
-    int num_meshes = mesh_paths.size();
-    meshes.resize(num_meshes);
+    initShaders();
+    initBuffers();
+}
+
+scene::scene(const scene& s) :
+    meshes(s.meshes),
+    lights(s.lights),
+    projectionMatrix(s.projectionMatrix),
+    invCamRotation(s.invCamRotation),
+    invCamPosition(s.invCamPosition),
+    keysDown(s.keysDown),
+    specialsDown(s.specialsDown),
+    windowWidth(s.windowWidth),
+    windowHeight(s.windowHeight),
+    texFramebuffer(),
+    sceneTexture(),
+    depthbuffer(),
+    canvasPosBuffer(),
+    renderProgramID(),
+    canvasProgramID()
+{
+    initShaders();
+    initBuffers();
+}
+
+scene& scene::operator=(const scene& s)
+{
+    meshes = s.meshes;
+    lights = s.lights;
+    projectionMatrix = s.projectionMatrix;
+    invCamRotation = s.invCamRotation;
+    invCamPosition = s.invCamPosition;
+    keysDown = s.keysDown;
+    specialsDown = s.specialsDown;
+    windowWidth = s.windowWidth;
+    windowHeight = s.windowHeight;
+
+    glDeleteProgram(canvasProgramID);
+    glDeleteTextures(1, &sceneTexture);
+    glDeleteRenderbuffers(1, &depthbuffer);
+    glDeleteFramebuffers(1, &texFramebuffer);
+    glDeleteBuffers(1, &canvasPosBuffer);
 
     initShaders();
+    initBuffers();
 
-    for(int i = 0; i < num_meshes; i++)
-    {
-        meshes[i] = mesh(mesh_paths.at(i), modelMatrices[i], renderProgramID);
-    }
+    return *this;
+}
 
-    initTextureBuffers();
+scene::~scene()
+{
+    glDeleteProgram(canvasProgramID);
+    glDeleteTextures(1, &sceneTexture);
+    glDeleteRenderbuffers(1, &depthbuffer);
+    glDeleteFramebuffers(1, &texFramebuffer);
+    glDeleteBuffers(1, &canvasPosBuffer);
 }
 
 void scene::initShaders()
 {
-    // Rendering image with one light
-    std::vector<std::string> in_attributes;
-    in_attributes.push_back("vertexPosition_modelspace");
-    in_attributes.push_back("vertexNormal");
-
-    std::vector<std::string> out_attributes;
-    out_attributes.push_back("color");
-
-    renderProgramID = engine::loadshaders("src/engine/shaders/triangle.vert",
-            "src/engine/shaders/triangle.frag", in_attributes, out_attributes);
-
     // Rendering texture to screen
-    in_attributes.clear();
-    out_attributes.clear();
+    std::vector<std::string> inAttributes;
+    std::vector<std::string> outAttributes;
 
-    in_attributes.push_back("canvasVertPos");
+    inAttributes.push_back("canvasVertPos");
     canvasProgramID = loadshaders("src/engine/shaders/canvas.vert",
-            "src/engine/shaders/canvas.frag", in_attributes, out_attributes);
+            "src/engine/shaders/canvas.frag", inAttributes, outAttributes);
 }
 
-void scene::initTextureBuffers()
+void scene::initBuffers()
 {
     // Set up textures
     glGenTextures(1, &sceneTexture);
     glBindTexture(GL_TEXTURE_2D, sceneTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width, window_height, 0,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowWidth, windowHeight, 0,
             GL_RGB, GL_UNSIGNED_BYTE, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -93,26 +126,26 @@ void scene::initTextureBuffers()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     // Set up depthbuffer
-    glGenRenderbuffersEXT(1, &depthbuffer);
-    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthbuffer);
-    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT,
-            window_width, window_height);
+    glGenRenderbuffers(1, &depthbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
+            windowWidth, windowHeight);
 
     // Set up framebuffer
-    glGenFramebuffersEXT(1, &texFramebuffer);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, texFramebuffer);
-    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
-            GL_RENDERBUFFER_EXT, depthbuffer);
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
+    glGenFramebuffers(1, &texFramebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, texFramebuffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+            GL_RENDERBUFFER, depthbuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
             GL_TEXTURE_2D, sceneTexture, 0);
 
 
-    GLenum drawbuffers[1] = {GL_COLOR_ATTACHMENT0_EXT};
+    GLenum drawbuffers[1] = {GL_COLOR_ATTACHMENT0};
     glDrawBuffers(1, drawbuffers);
 
     int status;
-    if((status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT)) !=
-            GL_FRAMEBUFFER_COMPLETE_EXT)
+    if((status = glCheckFramebufferStatus(GL_FRAMEBUFFER)) !=
+            GL_FRAMEBUFFER_COMPLETE)
     {
         std::cerr << "Failed to set up framebuffer: " << status << "\n";
         exit(1);
@@ -134,12 +167,25 @@ void scene::initTextureBuffers()
             GL_STATIC_DRAW);
 }
 
+void scene::loadMeshes(std::vector<std::string> meshPaths,
+        std::vector<glm::mat4> modelMatrices)
+{
+    int oldNumMeshes = meshes.size();
+    int newNumMeshes = oldNumMeshes + meshPaths.size();
+    meshes.resize(newNumMeshes);
+
+    for(int i = oldNumMeshes; i < newNumMeshes; i++)
+    {
+        meshes[i] = mesh(meshPaths.at(i), modelMatrices[i]);
+    }
+}
+
 void scene::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Render meshes to texture
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, texFramebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, texFramebuffer);
 
     static const GLuint clearColor[4] = {0, 0, 0, 0};
     glClearBufferuiv(GL_COLOR, 0, clearColor);
@@ -147,7 +193,7 @@ void scene::draw()
     static const GLfloat clearDepth[1] = {1.0f};
     glClearBufferfv(GL_DEPTH, 0, clearDepth);
 
-    glViewport(0, 0, window_width, window_height);
+    glViewport(0, 0, windowWidth, windowHeight);
 
     int num_meshes = meshes.size();
     int num_lights = lights.size();
@@ -160,7 +206,7 @@ void scene::draw()
     }
 
     // Draw texture to screen
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(canvasProgramID);

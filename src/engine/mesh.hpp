@@ -14,17 +14,19 @@ namespace engine
     {
         public:
             mesh();
-            mesh(std::string filepath, glm::mat4 modelMatrix, GLuint programID);
+            mesh(std::string filepath, glm::mat4 modelMatrix);
+            mesh(const mesh& m);
+            mesh& operator=(const mesh& m);
+            ~mesh();
 
             void draw(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, light l);
 
             void translate(glm::vec3 delta);
             void rotate(float angle, glm::vec3 axis);
-            void move(glm::mat4 m);
 
         private:
             std::vector<glm::vec3> vertices;
-            std::vector<glm::vec2> texture_uvs;
+            std::vector<glm::vec2> textureUVs;
             std::vector<glm::vec3> normals;
             glm::vec3 diffuse, ambient;
             glm::mat4 modelMatrix;
@@ -34,6 +36,9 @@ namespace engine
             // Constructor helpers
             void loadMesh(std::string filepath);
             void loadMaterial(std::string mtlpath);
+
+            void initShaders();
+            void initBuffers();
     };
 }
 

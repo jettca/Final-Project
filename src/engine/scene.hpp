@@ -15,14 +15,18 @@ namespace engine
     {
         public:
             scene();
-            scene(std::vector<std::string> mesh_paths,
-                    std::vector<glm::mat4> modelMatrices,
+            scene(std::vector<mesh> meshes,
                     std::vector<light> lights,
                     glm::mat4 projectionMatrix,
                     glm::mat4 camRotation,
                     glm::vec3 camPosition,
-                    int window_width, int window_height);
+                    int windowWidth, int windowHeight);
+            scene(const scene& s);
+            scene& operator=(const scene& s);
+            ~scene();
 
+            void loadMeshes(std::vector<std::string> meshPaths,
+                    std::vector<glm::mat4> modelMatrices);
             void draw();
             void update();
 
@@ -31,7 +35,7 @@ namespace engine
             void unsetKey(int key);
             void unsetSpecial(int key);
 
-            int window_width, window_height;
+            int windowWidth, windowHeight;
 
         private:
             std::vector<mesh> meshes;
@@ -50,7 +54,7 @@ namespace engine
             GLuint depthbuffer, canvasPosBuffer;
 
             void initShaders();
-            void initTextureBuffers();
+            void initBuffers();
     };
 }
 
