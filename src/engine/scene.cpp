@@ -3,7 +3,8 @@
 #include <iostream>
 
 #define SHADOW_MAP_WIDTH 1024
-#define SHADOW_MAP_HEIGHT 1024
+#define SHADOW_MAP_HEIGHT 512
+#define SHADOW_MAP_DEPTH 100
 
 using namespace engine;
 
@@ -17,8 +18,7 @@ scene::scene() :
     specialsDown(),
     windowWidth(),
     windowHeight(),
-    shadowmapWidth(),
-    shadowmapHeight(),
+    shadowmapSize(),
     shadowFramebuffer(),
     shadowTexture(),
     sceneFramebuffer(),
@@ -43,8 +43,7 @@ scene::scene(std::vector<mesh> meshes,
     specialsDown(),
     windowWidth(windowWidth),
     windowHeight(windowHeight),
-    shadowmapWidth(SHADOW_MAP_WIDTH),
-    shadowmapHeight(SHADOW_MAP_HEIGHT),
+    shadowmapSize(glm::vec3(SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT, SHADOW_MAP_DEPTH)),
     shadowFramebuffer(),
     shadowTexture(),
     sceneFramebuffer(),
@@ -68,8 +67,7 @@ scene::scene(const scene& s) :
     specialsDown(s.specialsDown),
     windowWidth(s.windowWidth),
     windowHeight(s.windowHeight),
-    shadowmapWidth(s.shadowmapWidth),
-    shadowmapHeight(s.shadowmapHeight),
+    shadowmapSize(),
     shadowFramebuffer(),
     shadowTexture(),
     sceneFramebuffer(),
@@ -94,8 +92,7 @@ scene& scene::operator=(const scene& s)
     specialsDown = s.specialsDown;
     windowWidth = s.windowWidth;
     windowHeight = s.windowHeight;
-    shadowmapWidth = s.shadowmapWidth;
-    shadowmapHeight = s.shadowmapHeight;
+    shadowmapSize = s.shadowmapSize;
 
     deleteGLData();
 
@@ -150,7 +147,7 @@ void scene::initShadowBuffers()
     glBindFramebuffer(GL_FRAMEBUFFER, shadowFramebuffer);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
             GL_TEXTURE_2D, shadowTexture, 0);
-    glDrawBuffer(GL_NONE);
+    glDrawBuffer(GL_DEPTH_ATTACHMENT);
 
     int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if(status != GL_FRAMEBUFFER_COMPLETE)
@@ -229,11 +226,12 @@ void scene::draw()
 
     int numMeshes = meshes.size();
     int numLights = lights.size();
+    numLights = 1;
 
     for(int i = 0; i < numLights; i++)
     {
         drawShadowmap(lights.at(i));
-        drawToTexture(lights.at(i));
+        //drawToTexture(lights.at(i));
 
         // Draw blended scene texture to screen
         glEnable(GL_BLEND);
@@ -252,7 +250,7 @@ void scene::drawShadowmap(light l)
 {
     // bind and clear depth texture
     glBindFramebuffer(GL_FRAMEBUFFER, shadowFramebuffer);
-    glViewport(0, 0, shadowmapWidth, shadowmapHeight);
+    glViewport(0, 0, shadowmapSize.x, shadowmapSize.y);
     static const GLfloat clearDepth[1] = {1.0f};
     glClearBufferfv(GL_DEPTH, 0, clearDepth);
 
@@ -260,7 +258,7 @@ void scene::drawShadowmap(light l)
     int numMeshes = meshes.size();
     for(int i = 0; i < numMeshes; i++)
     {
-        meshes.at(i).drawShadowmap(l);
+        meshes.at(i).drawShadowmap(l, shadowmapSize);
     }
 }
 
@@ -279,7 +277,7 @@ void scene::drawToTexture(light l)
     for(int i = 0; i < numMeshes; i++)
     {
         meshes.at(i).draw(viewMatrix(), projectionMatrix, l, shadowTexture,
-                shadowmapWidth, shadowmapHeight);
+                shadowmapSize);
     }
 }
 
@@ -298,7 +296,7 @@ void scene::drawSceneToScreen()
     glUniform1i(textureLoc, 0);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sceneTexture);
+    glBindTexture(GL_TEXTURE_2D, shadowTexture);
 
     glClear(GL_DEPTH_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLES, 0, 6);

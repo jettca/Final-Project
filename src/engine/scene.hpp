@@ -54,7 +54,7 @@ namespace engine
             GLuint sceneFramebuffer, sceneTexture, sceneDepthbuffer;
             GLuint canvasPosBuffer;
 
-            int shadowmapWidth, shadowmapHeight;
+            glm::vec3 shadowmapSize;
 
             void initShaders();
             void initShadowBuffers();

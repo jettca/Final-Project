@@ -24,9 +24,9 @@ void initGL()
 void initWorld(int windowWidth, int windowHeight)
 {
     std::vector<engine::light> lights;
-    lights.push_back(engine::light(glm::vec3(100.0f, 0.0f, -15.0f),
+    lights.push_back(engine::light(glm::vec3(50.0f, 0.0f, -15.0f),
                 glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 1.0f)));
-    lights.push_back(engine::light(glm::vec3(-100.0f, 0.0f, -25.0f),
+    lights.push_back(engine::light(glm::vec3(-50.0f, 0.0f, -25.0f),
                 glm::vec3(0.0f, 1.0f, 1.0f), glm::vec3(0.0f, 1.0f, 1.0f)));
 
     glm::mat4 projection(glm::perspective(45.0f, float(windowWidth)/windowHeight,

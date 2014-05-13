@@ -14,7 +14,7 @@ mesh::mesh() :
     diffuse(),
     ambient(),
     modelMatrix(),
-    lightProgramID(),
+    shadowProgramID(),
     renderProgramID(),
     vertexBuffer(),
     normalBuffer()
@@ -27,7 +27,7 @@ mesh::mesh(std::string filepath, glm::mat4 modelMatrix) :
     diffuse(),
     ambient(),
     modelMatrix(modelMatrix),
-    lightProgramID(),
+    shadowProgramID(),
     renderProgramID(),
     vertexBuffer(),
     normalBuffer()
@@ -45,7 +45,7 @@ mesh::mesh(const mesh& m) :
     diffuse(m.diffuse),
     ambient(m.ambient),
     modelMatrix(m.modelMatrix),
-    lightProgramID(),
+    shadowProgramID(),
     renderProgramID(),
     vertexBuffer(),
     normalBuffer()
@@ -63,7 +63,7 @@ mesh& mesh::operator=(const mesh& m)
     ambient = m.ambient;
     modelMatrix = m.modelMatrix;
 
-    glDeleteProgram(lightProgramID);
+    glDeleteProgram(shadowProgramID);
     glDeleteProgram(renderProgramID);
 
     glDeleteBuffers(1, &vertexBuffer);
@@ -77,7 +77,7 @@ mesh& mesh::operator=(const mesh& m)
 
 mesh::~mesh()
 {
-    glDeleteProgram(lightProgramID);
+    glDeleteProgram(shadowProgramID);
     glDeleteProgram(renderProgramID);
 
     glDeleteBuffers(1, &vertexBuffer);
@@ -88,18 +88,20 @@ void mesh::initShaders()
 {
     // Rendering light depth map
     std::vector<std::string> inAttributes;
-
     std::vector<std::string> outAttributes;
 
-    lightProgramID = loadshaders("src/engine/shaders/pointlightmap.vert",
+    inAttributes.push_back("vertexPosition_modelspace");
+    outAttributes.push_back("fragdepth");
+
+    shadowProgramID = loadshaders("src/engine/shaders/pointlightmap.vert",
             "src/engine/shaders/pointlightmap.frag", inAttributes, outAttributes);
 
     // Rendering image with one light
     inAttributes.clear();
     outAttributes.clear();
+
     inAttributes.push_back("vertexPosition_modelspace");
     inAttributes.push_back("vertexNormal");
-
     outAttributes.push_back("color");
 
     renderProgramID = loadshaders("src/engine/shaders/lambertian.vert",
@@ -122,7 +124,7 @@ void mesh::initBuffers()
 }
 
 void mesh::draw(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, light l,
-        GLuint shadowTexture, int shadowmapWidth, int shadowmapHeight)
+        GLuint shadowTexture, glm::vec3 shadowmapSize)
 {
     glUseProgram(renderProgramID);
 
@@ -164,8 +166,27 @@ void mesh::draw(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, light l,
     glDisableVertexAttribArray(1);
 }
 
-void mesh::drawShadowmap(light l)
+void mesh::drawShadowmap(light l, glm::vec3 shadowmapSize)
 {
+    glUseProgram(shadowProgramID);
+    glEnableVertexAttribArray(0);
+
+    // Load vertex positions
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+    // Load light data
+    GLuint lightPosID = glGetUniformLocation(shadowProgramID, "lightPosition_modelspace");
+    glm::vec4 lightPos_mspace = glm::inverse(modelMatrix)*glm::vec4(l.position, 1);
+    glUniform3fv(lightPosID, 1, &lightPos_mspace[0]);
+
+    // Load shadowmap bounds
+    GLuint depthID = glGetUniformLocation(shadowProgramID, "shadowmapDepth");
+    glUniform1fv(depthID, 1, &shadowmapSize.z);
+
+    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+
+    glDisableVertexAttribArray(0);
 }
 
 void mesh::translate(glm::vec3 delta)
