@@ -49,12 +49,21 @@ namespace engine
             std::set<int> keysDown;
             std::set<int> specialsDown;
 
-            GLuint renderProgramID, canvasProgramID;
-            GLuint texFramebuffer, sceneTexture;
-            GLuint depthbuffer, canvasPosBuffer;
+            GLuint canvasProgramID;
+            GLuint shadowFramebuffer, shadowTexture;
+            GLuint sceneFramebuffer, sceneTexture, sceneDepthbuffer;
+            GLuint canvasPosBuffer;
+
+            int shadowmapWidth, shadowmapHeight;
 
             void initShaders();
-            void initBuffers();
+            void initShadowBuffers();
+            void initSceneBuffers();
+            void deleteGLData();
+
+            void drawShadowmap(light l);
+            void drawToTexture(light l);
+            void drawSceneToScreen();
     };
 }
 

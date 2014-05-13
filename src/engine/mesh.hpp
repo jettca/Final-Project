@@ -19,7 +19,9 @@ namespace engine
             mesh& operator=(const mesh& m);
             ~mesh();
 
-            void draw(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, light l);
+            void draw(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, light l,
+                    GLuint shadowTexture, int shadowmapWidth, int shadowmapHeight);
+            void drawShadowmap(light l);
 
             void translate(glm::vec3 delta);
             void rotate(float angle, glm::vec3 axis);
@@ -31,7 +33,8 @@ namespace engine
             glm::vec3 diffuse, ambient;
             glm::mat4 modelMatrix;
 
-            GLuint programID, vertexBuffer, normalBuffer;
+            GLuint lightProgramID, renderProgramID;
+            GLuint vertexBuffer, normalBuffer;
 
             // Constructor helpers
             void loadMesh(std::string filepath);

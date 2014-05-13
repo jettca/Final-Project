@@ -24,12 +24,10 @@ void initGL()
 void initWorld(int windowWidth, int windowHeight)
 {
     std::vector<engine::light> lights;
-    lights.push_back(engine::light(glm::vec3(0, 100, 5),
-                glm::vec3(1, 0, 1), glm::vec3(1, 0, 1)));
-    lights.push_back(engine::light(glm::vec3(0, -100, 5),
-                glm::vec3(1, 1, 0), glm::vec3(0, 1, 0)));
-    lights.push_back(engine::light(glm::vec3(0, 0, -100),
-                glm::vec3(0, 1, 1), glm::vec3(0, 1, 0)));
+    lights.push_back(engine::light(glm::vec3(100.0f, 0.0f, -15.0f),
+                glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 1.0f)));
+    lights.push_back(engine::light(glm::vec3(-100.0f, 0.0f, -25.0f),
+                glm::vec3(0.0f, 1.0f, 1.0f), glm::vec3(0.0f, 1.0f, 1.0f)));
 
     glm::mat4 projection(glm::perspective(45.0f, float(windowWidth)/windowHeight,
                 0.1f, 100.0f));
@@ -41,11 +39,13 @@ void initWorld(int windowWidth, int windowHeight)
 
     std::vector<std::string> meshpaths;
     meshpaths.push_back("static/test_mesh.obj");
+    meshpaths.push_back("static/test_mesh.obj");
 
     std::vector<glm::mat4> modelMatrices;
     glm::mat4 init;
     init = glm::translate(init, glm::vec3(0.0f, 0.0f, -15.0f));
-    init = glm::rotate(init, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    modelMatrices.push_back(init);
+    init = glm::translate(glm::mat4(), glm::vec3(-10.0f, 0.0f, -18.0f));
     modelMatrices.push_back(init);
 
     world.loadMeshes(meshpaths, modelMatrices);

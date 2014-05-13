@@ -14,7 +14,8 @@ mesh::mesh() :
     diffuse(),
     ambient(),
     modelMatrix(),
-    programID(),
+    lightProgramID(),
+    renderProgramID(),
     vertexBuffer(),
     normalBuffer()
 {}
@@ -26,7 +27,8 @@ mesh::mesh(std::string filepath, glm::mat4 modelMatrix) :
     diffuse(),
     ambient(),
     modelMatrix(modelMatrix),
-    programID(),
+    lightProgramID(),
+    renderProgramID(),
     vertexBuffer(),
     normalBuffer()
 {
@@ -43,7 +45,8 @@ mesh::mesh(const mesh& m) :
     diffuse(m.diffuse),
     ambient(m.ambient),
     modelMatrix(m.modelMatrix),
-    programID(),
+    lightProgramID(),
+    renderProgramID(),
     vertexBuffer(),
     normalBuffer()
 {
@@ -60,7 +63,9 @@ mesh& mesh::operator=(const mesh& m)
     ambient = m.ambient;
     modelMatrix = m.modelMatrix;
 
-    glDeleteProgram(programID);
+    glDeleteProgram(lightProgramID);
+    glDeleteProgram(renderProgramID);
+
     glDeleteBuffers(1, &vertexBuffer);
     glDeleteBuffers(1, &normalBuffer);
 
@@ -72,24 +77,33 @@ mesh& mesh::operator=(const mesh& m)
 
 mesh::~mesh()
 {
-    glDeleteProgram(programID);
+    glDeleteProgram(lightProgramID);
+    glDeleteProgram(renderProgramID);
+
     glDeleteBuffers(1, &vertexBuffer);
     glDeleteBuffers(1, &normalBuffer);
 }
 
 void mesh::initShaders()
 {
+    // Rendering light depth map
+    std::vector<std::string> inAttributes;
+
+    std::vector<std::string> outAttributes;
+
+    lightProgramID = loadshaders("src/engine/shaders/pointlightmap.vert",
+            "src/engine/shaders/pointlightmap.frag", inAttributes, outAttributes);
+
     // Rendering image with one light
-    std::vector<std::string> in_attributes;
-    in_attributes.push_back("vertexPosition_modelspace");
-    in_attributes.push_back("vertexNormal");
+    inAttributes.clear();
+    outAttributes.clear();
+    inAttributes.push_back("vertexPosition_modelspace");
+    inAttributes.push_back("vertexNormal");
 
-    std::vector<std::string> out_attributes;
-    out_attributes.push_back("color");
+    outAttributes.push_back("color");
 
-    programID = engine::loadshaders("src/engine/shaders/lambertian.vert",
-            "src/engine/shaders/lambertian.frag", in_attributes, out_attributes);
-
+    renderProgramID = loadshaders("src/engine/shaders/lambertian.vert",
+            "src/engine/shaders/lambertian.frag", inAttributes, outAttributes);
 }
 
 void mesh::initBuffers()
@@ -107,9 +121,10 @@ void mesh::initBuffers()
             &normals[0], GL_STATIC_DRAW);
 }
 
-void mesh::draw(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, light l)
+void mesh::draw(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, light l,
+        GLuint shadowTexture, int shadowmapWidth, int shadowmapHeight)
 {
-    glUseProgram(programID);
+    glUseProgram(renderProgramID);
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -123,30 +138,34 @@ void mesh::draw(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, light l)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     // Load light data
-    GLuint lightPosID = glGetUniformLocation(programID, "lightPosition_worldspace");
-    GLuint lightDiffuseID = glGetUniformLocation(programID, "lightDiffuse");
-    GLuint lightSpecularID = glGetUniformLocation(programID, "lightSpecular");
+    GLuint lightPosID = glGetUniformLocation(renderProgramID, "lightPosition_worldspace");
+    GLuint lightDiffuseID = glGetUniformLocation(renderProgramID, "lightDiffuse");
+    GLuint lightSpecularID = glGetUniformLocation(renderProgramID, "lightSpecular");
     glUniform3fv(lightPosID, 1, &l.position[0]);
     glUniform3fv(lightDiffuseID, 1, &l.diffuse[0]);
     glUniform3fv(lightSpecularID, 1, &l.specular[0]);
 
     // Load M, V, and P
-    GLuint modelID = glGetUniformLocation(programID, "M");
-    GLuint viewID = glGetUniformLocation(programID, "V");
-    GLuint projectionID = glGetUniformLocation(programID, "P");
+    GLuint modelID = glGetUniformLocation(renderProgramID, "M");
+    GLuint viewID = glGetUniformLocation(renderProgramID, "V");
+    GLuint projectionID = glGetUniformLocation(renderProgramID, "P");
     glUniformMatrix4fv(modelID, 1, GL_FALSE, &modelMatrix[0][0]);
     glUniformMatrix4fv(viewID, 1, GL_FALSE, &viewMatrix[0][0]);
     glUniformMatrix4fv(projectionID, 1, GL_FALSE, &projectionMatrix[0][0]);
 
     // Load normal transform
     glm::mat3 normalTransform = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
-    GLuint normalTransformID = glGetUniformLocation(programID, "normalTransform");
+    GLuint normalTransformID = glGetUniformLocation(renderProgramID, "normalTransform");
     glUniformMatrix3fv(normalTransformID, 1, GL_FALSE, &normalTransform[0][0]);
 
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
+}
+
+void mesh::drawShadowmap(light l)
+{
 }
 
 void mesh::translate(glm::vec3 delta)
