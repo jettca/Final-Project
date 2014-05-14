@@ -1,11 +1,15 @@
 #version 150
 
+#define M_PI 3.1415926535897932384626433832795
+
 in vec3 vertexPosition_modelspace;
 in vec3 vertexNormal;
 
+uniform vec3 lightPosition_modelspace;
 uniform vec3 lightPosition_worldspace;
 uniform vec3 lightDiffuse;
 uniform vec3 lightSpecular;
+uniform vec3 shadowmapSize;
 
 uniform mat4 M;
 uniform mat4 V;
@@ -15,6 +19,7 @@ uniform mat3 normalTransform;
 out vec3 fragNormal;
 out vec3 lightDir;
 out vec3 halfViewDir;
+out vec3 shadowPos;
 
 void main()
 {
@@ -25,6 +30,12 @@ void main()
     fragNormal = normalize(normalTransform*vertexNormal);
     lightDir = normalize(lightPosition_worldspace - pos_worldspace.xyz);
     halfViewDir = normalize(lightDir - normalize(pos_cameraspace).xyz);
+
+    vec3 pos_lightspace = vertexPosition_modelspace - lightPosition_modelspace;
+    float rho = length(pos_lightspace);
+    float phi = 2*atan(pos_lightspace.y/(pos_lightspace.x + rho));
+    float theta = acos(pos_lightspace.z/rho);
+    shadowPos = vec3(phi/(M_PI) - 1.0f, 2*theta/M_PI - 1.0f, rho/shadowmapSize.z);
 
     gl_Position = P*pos_cameraspace;
 }

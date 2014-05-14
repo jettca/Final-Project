@@ -140,20 +140,31 @@ void mesh::draw(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, light l,
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     // Load light data
-    GLuint lightPosID = glGetUniformLocation(renderProgramID, "lightPosition_worldspace");
-    GLuint lightDiffuseID = glGetUniformLocation(renderProgramID, "lightDiffuse");
-    GLuint lightSpecularID = glGetUniformLocation(renderProgramID, "lightSpecular");
-    glUniform3fv(lightPosID, 1, &l.position[0]);
-    glUniform3fv(lightDiffuseID, 1, &l.diffuse[0]);
-    glUniform3fv(lightSpecularID, 1, &l.specular[0]);
+    GLuint lightMPosLoc = glGetUniformLocation(renderProgramID, "lightPosition_modelspace");
+    GLuint lightPosLoc = glGetUniformLocation(renderProgramID, "lightPosition_worldspace");
+    GLuint lightDiffuseLoc = glGetUniformLocation(renderProgramID, "lightDiffuse");
+    GLuint lightSpecularLoc = glGetUniformLocation(renderProgramID, "lightSpecular");
+    glm::vec4 lightmpos = glm::inverse(modelMatrix)*glm::vec4(l.position, 1);
+    glUniform3fv(lightMPosLoc, 1, &lightmpos[0]);
+    glUniform3fv(lightPosLoc, 1, &l.position[0]);
+    glUniform3fv(lightDiffuseLoc, 1, &l.diffuse[0]);
+    glUniform3fv(lightSpecularLoc, 1, &l.specular[0]);
+
+    // Load shadow texture and shadowmap size
+    GLuint shadowmapLoc = glGetUniformLocation(renderProgramID, "shadowmap");
+    glUniform1i(shadowmapLoc, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, shadowTexture);
+    GLuint shadowSizeLoc = glGetUniformLocation(renderProgramID, "shadowmapSize");
+    glUniform3fv(shadowSizeLoc, 1, &shadowmapSize[0]);
 
     // Load M, V, and P
-    GLuint modelID = glGetUniformLocation(renderProgramID, "M");
-    GLuint viewID = glGetUniformLocation(renderProgramID, "V");
-    GLuint projectionID = glGetUniformLocation(renderProgramID, "P");
-    glUniformMatrix4fv(modelID, 1, GL_FALSE, &modelMatrix[0][0]);
-    glUniformMatrix4fv(viewID, 1, GL_FALSE, &viewMatrix[0][0]);
-    glUniformMatrix4fv(projectionID, 1, GL_FALSE, &projectionMatrix[0][0]);
+    GLuint modelLoc = glGetUniformLocation(renderProgramID, "M");
+    GLuint viewLoc = glGetUniformLocation(renderProgramID, "V");
+    GLuint projectionLoc = glGetUniformLocation(renderProgramID, "P");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, &modelMatrix[0][0]);
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &viewMatrix[0][0]);
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, &projectionMatrix[0][0]);
 
     // Load normal transform
     glm::mat3 normalTransform = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
@@ -176,9 +187,9 @@ void mesh::drawShadowmap(light l, glm::vec3 shadowmapSize)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     // Load light data
-    GLuint lightPosID = glGetUniformLocation(shadowProgramID, "lightPosition_modelspace");
-    glm::vec4 lightPos_mspace = glm::inverse(modelMatrix)*glm::vec4(l.position, 1);
-    glUniform3fv(lightPosID, 1, &lightPos_mspace[0]);
+    GLuint lightMPosLoc = glGetUniformLocation(shadowProgramID, "lightPosition_modelspace");
+    glm::vec4 lightmpos = glm::inverse(modelMatrix)*glm::vec4(l.position, 1);
+    glUniform3fv(lightMPosLoc, 1, &lightmpos[0]);
 
     // Load shadowmap bounds
     GLuint depthID = glGetUniformLocation(shadowProgramID, "shadowmapDepth");

@@ -2,8 +2,8 @@
 #include "engine/shaders/loadshaders.hpp"
 #include <iostream>
 
-#define SHADOW_MAP_WIDTH 1024
-#define SHADOW_MAP_HEIGHT 512
+#define SHADOW_MAP_WIDTH 2048
+#define SHADOW_MAP_HEIGHT 2048
 #define SHADOW_MAP_DEPTH 100
 
 using namespace engine;
@@ -135,8 +135,8 @@ void scene::initShadowBuffers()
     // Set up depth texture
     glGenTextures(1, &shadowTexture);
     glBindTexture(GL_TEXTURE_2D, shadowTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 0,
-            GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, shadowmapSize.x,
+            shadowmapSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -147,7 +147,7 @@ void scene::initShadowBuffers()
     glBindFramebuffer(GL_FRAMEBUFFER, shadowFramebuffer);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
             GL_TEXTURE_2D, shadowTexture, 0);
-    glDrawBuffer(GL_DEPTH_ATTACHMENT);
+    glDrawBuffer(GL_NONE);
 
     int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if(status != GL_FRAMEBUFFER_COMPLETE)
@@ -226,12 +226,11 @@ void scene::draw()
 
     int numMeshes = meshes.size();
     int numLights = lights.size();
-    numLights = 1;
 
     for(int i = 0; i < numLights; i++)
     {
         drawShadowmap(lights.at(i));
-        //drawToTexture(lights.at(i));
+        drawToTexture(lights.at(i));
 
         // Draw blended scene texture to screen
         glEnable(GL_BLEND);
@@ -296,7 +295,7 @@ void scene::drawSceneToScreen()
     glUniform1i(textureLoc, 0);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, shadowTexture);
+    glBindTexture(GL_TEXTURE_2D, sceneTexture);
 
     glClear(GL_DEPTH_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLES, 0, 6);
