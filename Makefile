@@ -19,13 +19,13 @@ GL = includes/gl_include.h
 default: $(executable)
 
 $(executable): $(objects)
-	mkdir -p $(bin)
-	mkdir -p $(objd)
 	$(CXX) $(objects) -o $(executable) $(LDLIBS) $(LDFLAGS) 
 
 # Include dependencies
 
 $(objd)/main.o: $(srcd)/main.cpp $(srcd)/input/input.hpp $(srcd)/engine/scene.hpp
+	mkdir -p $(bin)
+	mkdir -p $(objd)
 	$(CXX) $(CXXFLAGS) -c $(srcd)/main.cpp -o $(objd)/main.o
 
 $(objd)/scene.o: $(srcd)/engine/scene.cpp $(srcd)/engine/mesh.hpp \
@@ -46,7 +46,7 @@ $(objd)/loadshaders.o: $(srcd)/engine/shaders/loadshaders.cpp
 
 .PHONY: clean
 clean:
-	rm -f $(objd)/* $(executable)
+	rm -rf $(objd) $(bin)
 
 .PHONY: all
 all: clean default
