@@ -16,6 +16,11 @@ V.      Sources
 
 
 I. Directions
+To compile, run make.
+To run, type bin/main.
+Must be compiled on a Mac with OS X 10.7 or higher and an Nvidia card supporting
+OpenGL 3.2.
+
 wasd - Move camera (with strafing)
 Arrow keys - Move camera (with rotating)
 xz - Rotation meshes
