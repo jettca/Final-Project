@@ -3,6 +3,8 @@
 
 #include "includes/glm_include.hpp"
 
+/* Simple class for storing light data
+ */
 namespace engine
 {
     class light

@@ -25,11 +25,19 @@ namespace engine
             scene& operator=(const scene& s);
             ~scene();
 
+            /* Load meshes from filepaths with given initial
+             * model matrices
+             */
             void loadMeshes(std::vector<std::string> meshPaths,
                     std::vector<glm::mat4> modelMatrices);
+
+            /* draw scene to screne using shadow mapping */
             void draw();
+
+            /* update scene from user input */
             void update();
 
+            /* set user input */
             void setKey(int key);
             void setSpecial(int key);
             void unsetKey(int key);
@@ -38,17 +46,21 @@ namespace engine
             int windowWidth, windowHeight;
 
         private:
+            /* scene object data */
             std::vector<mesh> meshes;
             std::vector<light> lights;
 
+            /* matrix data */
             glm::mat4 projectionMatrix;
             glm::mat4 viewMatrix();
             glm::vec4 invCamPosition;
             glm::mat4 invCamRotation;
 
+            /* user input storage */
             std::set<int> keysDown;
             std::set<int> specialsDown;
 
+            /* programs and buffers for rendering */
             GLuint canvasProgramID;
             GLuint shadowFramebuffer, shadowTexture;
             GLuint sceneFramebuffer, sceneTexture, sceneDepthbuffer;
@@ -56,11 +68,13 @@ namespace engine
 
             glm::vec3 shadowmapSize;
 
+            /* constructor and destructor helpers */
             void initShaders();
             void initShadowBuffers();
             void initSceneBuffers();
             void deleteGLData();
 
+            /* draw function helpers */
             void drawShadowmap(light l);
             void drawToTexture(light l);
             void drawSceneToScreen();

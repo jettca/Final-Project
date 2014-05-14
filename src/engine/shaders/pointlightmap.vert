@@ -1,3 +1,9 @@
+
+/* Vertex shader for generating a shadowmap
+ * in polar coordinates using phi and theta
+ * for U and V, and rho for depth
+ */
+
 #version 150
 
 #define M_PI 3.1415926535897932384626433832795

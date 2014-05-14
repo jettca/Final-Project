@@ -1,3 +1,8 @@
+
+/* Vertex shader for texturing a canvas
+ * over the whole screen at z = 0
+ */
+
 #version 150
 
 in vec3 canvasVertPos;

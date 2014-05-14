@@ -1,21 +1,27 @@
+/* Vertex shader for evaluating blinn phong
+ * shading with a polar coordinate shadowmap
+ */
+
 #version 150
 
 #define M_PI 3.1415926535897932384626433832795
 
+// Vertex data
 in vec3 vertexPosition_modelspace;
 in vec3 vertexNormal;
 
+// Light and shadow data
 uniform vec3 lightPosition_modelspace;
 uniform vec3 lightPosition_worldspace;
-uniform vec3 lightDiffuse;
-uniform vec3 lightSpecular;
 uniform vec3 shadowmapSize;
 
+// Transformation data
 uniform mat4 M;
 uniform mat4 V;
 uniform mat4 P;
 uniform mat3 normalTransform;
 
+// Data for fragment shader
 out vec3 fragNormal;
 out vec3 lightDir;
 out vec3 halfViewDir;

@@ -229,15 +229,16 @@ void scene::draw()
 
     for(int i = 0; i < numLights; i++)
     {
+        // draw shadowmap for scene
         drawShadowmap(lights.at(i));
+
+        // render scene to scene texture using shadowmap
         drawToTexture(lights.at(i));
 
         // Draw blended scene texture to screen
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE);
-
         drawSceneToScreen();
-
         glDisable(GL_BLEND);
     }
 
@@ -282,21 +283,23 @@ void scene::drawToTexture(light l)
 
 void scene::drawSceneToScreen()
 {
+    // Prepare to draw to screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, windowWidth, windowHeight);
 
+    // Set canvas program and vertices
     glUseProgram(canvasProgramID);
     glEnableVertexAttribArray(0);
-
     glBindBuffer(GL_ARRAY_BUFFER, canvasPosBuffer);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
+    // Load scene texture to draw on canvas
     GLuint textureLoc = glGetUniformLocation(canvasProgramID, "sceneTexture");
     glUniform1i(textureLoc, 0);
-
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, sceneTexture);
 
+    // Clear depth buffer and draw
     glClear(GL_DEPTH_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     
@@ -355,8 +358,8 @@ void scene::update()
 
 glm::mat4 scene::viewMatrix()
 {
+    // Generate view matrix from camera position and rotation
     glm::mat4 shift;
-
     for(int i = 0; i < 3; i++)
     {
         shift[3][i] = invCamPosition[i];
