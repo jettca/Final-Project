@@ -7,6 +7,8 @@ in vec3 vertexPosition_modelspace;
 uniform vec3 lightPosition_modelspace;
 uniform float shadowmapDepth;
 
+out float depth;
+
 void main()
 {
     vec3 pos = vertexPosition_modelspace - lightPosition_modelspace;
@@ -14,6 +16,6 @@ void main()
     float rho = length(pos);
     float phi = 2*atan(pos.y/(pos.x + rho));
     float theta = acos(pos.z/rho);
-    gl_Position = vec4(phi/(M_PI) - 1.0f, 2*theta/M_PI - 1.0f,
-            rho/shadowmapDepth, 1);
+    depth = rho/shadowmapDepth;
+    gl_Position = vec4(phi/M_PI, 2*theta/M_PI - 1.0f, rho/shadowmapDepth, 1);
 }

@@ -35,7 +35,7 @@ void main()
     float rho = length(pos_lightspace);
     float phi = 2*atan(pos_lightspace.y/(pos_lightspace.x + rho));
     float theta = acos(pos_lightspace.z/rho);
-    shadowPos = vec3(phi/(M_PI) - 1.0f, 2*theta/M_PI - 1.0f, rho/shadowmapSize.z);
+    shadowPos = vec3(phi/M_PI, 2*theta/M_PI - 1.0f, rho/shadowmapSize.z);
 
     gl_Position = P*pos_cameraspace;
 }

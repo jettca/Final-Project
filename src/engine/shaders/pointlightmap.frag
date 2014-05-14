@@ -1,8 +1,10 @@
 #version 150
 
+in float depth;
+
 out float fragdepth;
 
 void main()
 {
-    fragdepth = gl_FragCoord.z;
+    fragdepth = depth;
 }
